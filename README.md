@@ -1,28 +1,36 @@
 # STL Compressor Web
 
-A pure frontend web application for viewing and compressing STL 3D files directly in the browser.
+[![Version](https://img.shields.io/badge/version-v1.0.0-blue.svg)](https://github.com/fan-ziqi/stl_compressor_web)
+[![License](https://img.shields.io/badge/license-Apache--2.0-yellow.svg)](LICENSE)
+[![Platform](https://img.shields.io/badge/platform-web-orange.svg)](https://github.com/fan-ziqi/stl_compressor_web)
 
-## Features
+**STL Compressor Web** is a pure frontend web application for viewing and compressing STL 3D files directly in the browser. Built on top of [Three.js](https://threejs.org/), it provides an intuitive interface for visualizing and simplifying 3D meshes without any installation required. All processing happens locally in your browser - your files never leave your device.
 
-- **Drag & Drop** - Drop STL files anywhere on the screen
-- **3D Viewer** - Interactive 3D view with orbit controls (rotate, zoom, pan)
-- **Mesh Compression** - Reduce triangle count while preserving geometry
-- **Batch Processing** - Load and process multiple files at once
-- **Export** - Download compressed files as STL
+## Key Features
 
-## Usage
+- **Drag & Drop**: Drop STL files anywhere on the screen to instantly load them
+- **3D Viewer**: Interactive 3D view with orbit controls (rotate, zoom, pan)
+- **Mesh Compression**: Reduce triangle count while preserving geometry with adjustable quality slider
+- **Batch Processing**: Load and process multiple files at once
+- **Export**: Download compressed files as STL (binary format)
+- **Theme Support**: Switch between light and dark modes
 
-1. Open `index.html` in a modern web browser
-2. Drag and drop STL files onto the page (or click to upload)
-3. Adjust the simplification slider to reduce mesh density
-4. Download the compressed files
+## Getting Started
+
+Simply open `index.html` in a modern web browser:
+
+1. Drag and drop STL files onto the page (or click to upload)
+2. Adjust the simplification slider to reduce mesh density
+3. Download the compressed files
+
+No build step or server required - just open the HTML file directly in your browser.
 
 ## Tech Stack
 
 - Pure HTML/CSS/JavaScript (no build step required)
-- Three.js for 3D rendering
-- Custom STL parser
-- Mesh simplification algorithm
+- [Three.js](https://threejs.org/) for 3D rendering
+- Custom STL parser (supports both ASCII and Binary formats)
+- Mesh simplification algorithm based on quadric error metrics
 
 ## Browser Support
 
@@ -33,4 +41,8 @@ A pure frontend web application for viewing and compressing STL 3D files directl
 
 ## License
 
-MIT
+This project is licensed under the [Apache License 2.0](LICENSE).
+
+## Author
+
+Developed by [Ziqi Fan](https://github.com/fan-ziqi).

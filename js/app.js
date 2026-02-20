@@ -26,6 +26,58 @@ class STLToolApp {
     }
 
     /**
+     * Initialize theme
+     */
+    initTheme() {
+        const themeBtn = document.getElementById('themeBtn');
+        const themeText = document.getElementById('themeText');
+        const themeIcon = document.getElementById('themeIcon');
+
+        // Load saved theme
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        this.applyTheme(savedTheme);
+
+        themeBtn.addEventListener('click', () => {
+            const currentTheme = document.documentElement.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            this.applyTheme(newTheme);
+            localStorage.setItem('theme', newTheme);
+        });
+    }
+
+    /**
+     * Apply theme
+     */
+    applyTheme(theme) {
+        const themeText = document.getElementById('themeText');
+        const themeIcon = document.getElementById('themeIcon');
+
+        if (theme === 'dark') {
+            document.documentElement.setAttribute('data-theme', 'dark');
+            themeText.textContent = 'Dark';
+            // Moon icon
+            themeIcon.innerHTML = `
+                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+            `;
+        } else {
+            document.documentElement.removeAttribute('data-theme');
+            themeText.textContent = 'Light';
+            // Sun icon
+            themeIcon.innerHTML = `
+                <circle cx="12" cy="12" r="5"/>
+                <line x1="12" y1="1" x2="12" y2="3"/>
+                <line x1="12" y1="21" x2="12" y2="23"/>
+                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
+                <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+                <line x1="1" y1="12" x2="3" y2="12"/>
+                <line x1="21" y1="12" x2="23" y2="12"/>
+                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
+                <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+            `;
+        }
+    }
+
+    /**
      * Setup all event listeners
      */
     setupEventListeners() {
@@ -50,6 +102,19 @@ class STLToolApp {
 
         // Download all button
         document.getElementById('downloadAllBtn').addEventListener('click', () => this.downloadAll());
+
+        // Help button
+        document.getElementById('helpBtn').addEventListener('click', () => {
+            document.getElementById('helpModal').classList.add('visible');
+        });
+
+        // Close help modal
+        document.getElementById('helpModalBackdrop').addEventListener('click', () => {
+            document.getElementById('helpModal').classList.remove('visible');
+        });
+
+        // Theme toggle
+        this.initTheme();
 
         // Full-screen drag and drop handling
         this.setupDragAndDrop();
@@ -161,7 +226,9 @@ class STLToolApp {
                     name: file.name,
                     size: file.size,
                     meshData,
-                    quality: 100
+                    quality: 100,
+                    originalSize: file.size,
+                    originalTriCount: meshData.triangleCount
                 };
                 this.files.push(fileObj);
             } catch (error) {
@@ -210,13 +277,10 @@ class STLToolApp {
 
         fileCards.innerHTML = this.files.map(file => {
             const isSelected = file.id === this.selectedFileId;
-            const sizeStr = this.formatFileSize(file.meshData.fileSize);
-            const triStr = this.formatNumber(file.meshData.triangleCount);
-
-            let compressionInfo = '';
-            if (file.meshData.isCompressed) {
-                compressionInfo = `<span><strong>${file.meshData.compressionRatio.toFixed(0)}%</strong> reduced</span>`;
-            }
+            const originalSizeStr = this.formatFileSize(file.originalSize);
+            const currentSizeStr = this.formatFileSize(file.meshData.fileSize);
+            const originalTriStr = this.formatNumber(file.originalTriCount);
+            const currentTriStr = this.formatNumber(file.meshData.triangleCount);
 
             return `
                 <div class="file-card ${isSelected ? 'selected' : ''}" data-id="${file.id}">
@@ -231,7 +295,7 @@ class STLToolApp {
                             </div>
                             <div>
                                 <div class="file-card-name" title="${file.name}">${file.name}</div>
-                                <div class="file-card-meta">${sizeStr} · ${triStr} tri</div>
+                                <div class="file-card-meta">${originalSizeStr} -> ${currentSizeStr} * ${originalTriStr} -> ${currentTriStr} tri</div>
                             </div>
                         </div>
                         <div class="file-card-actions">
@@ -257,7 +321,6 @@ class STLToolApp {
                         </div>
                         <input type="range" class="file-slider" data-id="${file.id}" min="1" max="100" value="${file.quality}">
                     </div>
-                    ${compressionInfo ? `<div class="file-card-status">${compressionInfo}</div>` : ''}
                 </div>
             `;
         }).join('');
@@ -367,43 +430,10 @@ class STLToolApp {
                 this.updateStatusBar(file);
             }
 
-            // Update compression info display without re-rendering entire list
-            this.updateFileCardCompression(file);
+            // Re-render file cards to show updated values
+            this.renderFileCards();
         } catch (err) {
             console.error('Simplify error:', err);
-        }
-    }
-
-    /**
-     * Update file card compression info
-     */
-    updateFileCardCompression(file) {
-        const card = document.querySelector(`.file-card[data-id="${file.id}"]`);
-        if (!card) return;
-
-        // Update quality value
-        const qualityEl = document.getElementById(`quality-${file.id}`);
-        if (qualityEl) {
-            qualityEl.textContent = `${file.quality}%`;
-        }
-
-        // Update slider position
-        const sliderEl = card.querySelector('.file-slider');
-        if (sliderEl) {
-            sliderEl.value = file.quality;
-        }
-
-        // Update compression info
-        let statusEl = card.querySelector('.file-card-status');
-        if (file.meshData.isCompressed) {
-            if (!statusEl) {
-                statusEl = document.createElement('div');
-                statusEl.className = 'file-card-status';
-                card.appendChild(statusEl);
-            }
-            statusEl.innerHTML = `<span><strong>${file.meshData.compressionRatio.toFixed(0)}%</strong> reduced</span>`;
-        } else if (statusEl) {
-            statusEl.remove();
         }
     }
 
