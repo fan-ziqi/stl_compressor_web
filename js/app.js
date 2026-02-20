@@ -181,17 +181,6 @@ class STLToolApp {
             globalQualityValue.textContent = `${value}%`;
             this.applyGlobalSimplify(value);
         });
-
-        // View controls
-        document.getElementById('resetViewBtn').addEventListener('click', () => this.viewer.resetView());
-        document.getElementById('wireframeBtn').addEventListener('click', (e) => {
-            const isWireframe = this.viewer.toggleWireframe();
-            e.currentTarget.classList.toggle('active', isWireframe);
-        });
-        document.getElementById('gridBtn').addEventListener('click', (e) => {
-            const isGrid = this.viewer.toggleGrid();
-            e.currentTarget.classList.toggle('active', isGrid);
-        });
     }
 
     /**
@@ -206,9 +195,9 @@ class STLToolApp {
      * Process uploaded files
      */
     async handleFiles(fileList) {
-        const files = Array.from(fileList).filter(f => f.name.toLowerCase().endsWith('.stl'));
+        const stlFiles = Array.from(fileList).filter(f => f.name.toLowerCase().endsWith('.stl'));
 
-        if (files.length === 0) {
+        if (stlFiles.length === 0) {
             this.showToast('Please select valid STL files', 'error');
             return;
         }
@@ -217,7 +206,7 @@ class STLToolApp {
 
         let idCounter = Date.now();
 
-        for (const file of files) {
+        for (const file of stlFiles) {
             try {
                 const buffer = await file.arrayBuffer();
                 const meshData = STLParser.parse(buffer, file.name);
