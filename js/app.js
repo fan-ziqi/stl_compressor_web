@@ -75,6 +75,11 @@ class STLToolApp {
                 <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
             `;
         }
+
+        // Update 3D viewer theme
+        if (this.viewer) {
+            this.viewer.updateTheme(theme);
+        }
     }
 
     /**
@@ -90,13 +95,8 @@ class STLToolApp {
             filesEmpty.addEventListener('click', () => fileInput.click());
         }
 
-        // Also click on entire app to upload when no files loaded
-        const app = document.getElementById('app');
-        app.addEventListener('click', (e) => {
-            if (this.files.length === 0 && !e.target.closest('button') && !e.target.closest('input')) {
-                fileInput.click();
-            }
-        });
+        // Upload button
+        document.getElementById('uploadBtn').addEventListener('click', () => fileInput.click());
 
         fileInput.addEventListener('change', (e) => this.handleFileSelect(e));
 

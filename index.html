@@ -255,8 +255,15 @@
             justify-content: center;
         }
 
-        /* Global simplify slider */
+        /* Global controls row */
+        .global-controls-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
         .global-simplify {
+            flex: 1;
             padding: 14px 16px;
             background: var(--glass-bg);
             backdrop-filter: blur(20px);
@@ -264,6 +271,11 @@
             border-radius: var(--radius);
             border: 1px solid var(--glass-border);
             box-shadow: var(--shadow);
+        }
+
+        .global-controls-row .btn-secondary {
+            flex-shrink: 0;
+            padding: 12px 16px;
         }
 
         .global-simplify-header {
@@ -802,15 +814,15 @@
             <div class="files-panel">
                 <!-- Global controls -->
                 <div class="global-controls" id="globalControls">
-                    <!-- Global simplify slider -->
-                    <div class="global-simplify">
-                        <div class="global-simplify-header">
-                            <span>Simplify All</span>
-                            <span class="value" id="globalQualityValue">100%</span>
+                    <!-- Global compress slider and download -->
+                    <div class="global-controls-row">
+                        <div class="global-simplify">
+                            <div class="global-simplify-header">
+                                <span>Compress All</span>
+                                <span class="value" id="globalQualityValue">100%</span>
+                            </div>
+                            <input type="range" class="global-slider" id="globalSlider" min="1" max="100" value="100">
                         </div>
-                        <input type="range" class="global-slider" id="globalSlider" min="1" max="100" value="100">
-                    </div>
-                    <div class="global-buttons">
                         <button class="btn btn-secondary" id="downloadAllBtn">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
@@ -818,6 +830,16 @@
                                 <line x1="12" y1="15" x2="12" y2="3"/>
                             </svg>
                             <span>Download</span>
+                        </button>
+                    </div>
+                    <div class="global-buttons">
+                        <button class="btn btn-secondary" id="uploadBtn">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                                <polyline points="17 8 12 3 7 8"/>
+                                <line x1="12" y1="3" x2="12" y2="15"/>
+                            </svg>
+                            <span>Upload</span>
                         </button>
                         <button class="btn btn-secondary" id="helpBtn">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -842,8 +864,6 @@
                             <span id="themeText">Light</span>
                         </button>
                     </div>
-                        <span id="themeText">Light</span>
-                    </button>
                 </div>
 
                 <!-- File cards -->

@@ -22,7 +22,9 @@ class STLViewer {
     init() {
         // Scene
         this.scene = new THREE.Scene();
-        this.scene.background = new THREE.Color(0xe8e8ed);
+        this.updateTheme('light');
+
+        // Camera
 
         // Camera
         const aspect = this.canvas.clientWidth / this.canvas.clientHeight;
@@ -98,6 +100,21 @@ class STLViewer {
         const backLight = new THREE.DirectionalLight(0xff8888, 0.2);
         backLight.position.set(0, -50, -100);
         this.scene.add(backLight);
+    }
+
+    /**
+     * Update theme colors
+     */
+    updateTheme(theme) {
+        if (theme === 'dark') {
+            this.scene.background = new THREE.Color(0x0a0a0f);
+            this.grid.material.color.setHex(0x333333);
+            this.grid.material.secondaryColor.setHex(0x222222);
+        } else {
+            this.scene.background = new THREE.Color(0xe8e8ed);
+            this.grid.material.color.setHex(0xcccccc);
+            this.grid.material.secondaryColor.setHex(0xdddddd);
+        }
     }
 
     /**
