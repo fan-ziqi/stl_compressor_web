@@ -1,0 +1,786 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>STL Compressor</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@400;500;600&family=SF+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-primary: rgba(255, 255, 255, 0.8);
+            --bg-secondary: rgba(245, 245, 247, 0.8);
+            --bg-tertiary: rgba(232, 232, 237, 0.6);
+            --text-primary: #1d1d1f;
+            --text-secondary: #86868b;
+            --accent: #0071e3;
+            --accent-hover: #0077ed;
+            --border: rgba(210, 210, 215, 0.5);
+            --radius: 16px;
+            --radius-sm: 10px;
+            --shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            --glass-bg: rgba(255, 255, 255, 0.72);
+            --glass-border: rgba(255, 255, 255, 0.4);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #f5f5f7 0%, #e8e8ed 50%, #f0f0f5 100%);
+            color: var(--text-primary);
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        #app {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            padding: 12px;
+            gap: 12px;
+        }
+
+        /* Global controls */
+        .global-controls {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            padding: 14px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: var(--radius);
+            border: 1px solid var(--glass-border);
+            box-shadow: var(--shadow);
+        }
+
+        .btn-block {
+            width: 100%;
+            justify-content: center;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 14px;
+            font-size: 13px;
+            font-weight: 500;
+            border: none;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+        }
+
+        .btn-icon {
+            padding: 8px;
+            border-radius: 50%;
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--accent-hover);
+            transform: scale(1.02);
+        }
+
+        .btn-secondary {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(210, 210, 215, 0.8);
+        }
+
+        .btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .btn:disabled:hover {
+            transform: none;
+        }
+
+        .btn svg {
+            width: 16px;
+            height: 16px;
+        }
+
+        /* Main container */
+        .main-container {
+            display: flex;
+            flex: 1;
+            gap: 12px;
+            overflow: hidden;
+        }
+
+        /* Viewer panel */
+        .viewer-panel {
+            flex: 1;
+            position: relative;
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: var(--radius);
+            border: 1px solid var(--glass-border);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+        }
+
+        #viewerCanvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+
+        .viewer-empty {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            pointer-events: none;
+        }
+
+        .viewer-empty.hidden {
+            display: none;
+        }
+
+        .viewer-empty svg {
+            color: var(--border);
+            margin-bottom: 12px;
+        }
+
+        .viewer-empty h3 {
+            font-size: 16px;
+            font-weight: 500;
+            color: var(--text-primary);
+            margin-bottom: 6px;
+        }
+
+        .viewer-empty p {
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        /* View controls */
+        .view-controls {
+            position: absolute;
+            bottom: 12px;
+            right: 12px;
+            display: flex;
+            gap: 6px;
+            padding: 6px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--glass-border);
+        }
+
+        .view-btn {
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: none;
+            background: transparent;
+            border-radius: 8px;
+            cursor: pointer;
+            color: var(--text-secondary);
+            transition: all 0.15s ease;
+        }
+
+        .view-btn:hover {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+        }
+
+        .view-btn.active {
+            background: var(--accent);
+            color: white;
+        }
+
+        .view-btn svg {
+            width: 16px;
+            height: 16px;
+        }
+
+        /* Files panel */
+        .files-panel {
+            width: 320px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            overflow: hidden;
+        }
+
+        /* Global simplify slider */
+        .global-simplify {
+            padding: 14px 16px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: var(--radius);
+            border: 1px solid var(--glass-border);
+            box-shadow: var(--shadow);
+        }
+
+        .global-simplify-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+
+        .global-simplify-header span {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .global-simplify-header .value {
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--accent);
+        }
+
+        .global-slider {
+            width: 100%;
+            height: 6px;
+            -webkit-appearance: none;
+            background: var(--bg-tertiary);
+            border-radius: 3px;
+            outline: none;
+        }
+
+        .global-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 18px;
+            height: 18px;
+            background: var(--accent);
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0, 113, 227, 0.3);
+            transition: transform 0.15s ease;
+        }
+
+        .global-slider::-webkit-slider-thumb:hover {
+            transform: scale(1.1);
+        }
+
+        /* File cards container */
+        .file-cards {
+            flex: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            padding-right: 4px;
+        }
+
+        .file-cards::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .file-cards::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .file-cards::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 3px;
+        }
+
+        /* File card */
+        .file-card {
+            padding: 14px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--glass-border);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+            transition: all 0.2s ease;
+        }
+
+        .file-card:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        }
+
+        .file-card.selected {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 2px rgba(0, 113, 227, 0.2);
+        }
+
+        .file-card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+
+        .file-card-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex: 1;
+            min-width: 0;
+        }
+
+        .file-card-icon {
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--bg-tertiary);
+            border-radius: 8px;
+            flex-shrink: 0;
+        }
+
+        .file-card-icon svg {
+            width: 16px;
+            height: 16px;
+            color: var(--accent);
+        }
+
+        .file-card-name {
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-primary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .file-card-meta {
+            font-size: 11px;
+            color: var(--text-secondary);
+            margin-top: 2px;
+        }
+
+        .file-card-actions {
+            display: flex;
+            gap: 4px;
+        }
+
+        .file-card-delete, .file-card-download {
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: none;
+            background: transparent;
+            border-radius: 50%;
+            cursor: pointer;
+            color: var(--text-secondary);
+            transition: all 0.15s ease;
+        }
+
+        .file-card-delete:hover {
+            background: rgba(255, 59, 48, 0.1);
+            color: #ff3b30;
+        }
+
+        .file-card-download:hover {
+            background: rgba(0, 113, 227, 0.1);
+            color: var(--accent);
+        }
+
+        /* Individual simplify slider */
+        .file-card-slider {
+            margin-top: 8px;
+        }
+
+        .file-card-slider-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 6px;
+        }
+
+        .file-card-slider-header span {
+            font-size: 11px;
+            color: var(--text-secondary);
+        }
+
+        .file-card-slider-header .value {
+            font-size: 11px;
+            font-weight: 500;
+            color: var(--accent);
+        }
+
+        .file-slider {
+            width: 100%;
+            height: 4px;
+            -webkit-appearance: none;
+            background: var(--bg-tertiary);
+            border-radius: 2px;
+            outline: none;
+        }
+
+        .file-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 14px;
+            height: 14px;
+            background: var(--accent);
+            border-radius: 50%;
+            cursor: pointer;
+        }
+
+        /* Empty state */
+        .files-empty {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 20px;
+            text-align: center;
+            background: var(--glass-bg);
+            cursor: pointer;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: var(--radius);
+            border: 1px solid var(--glass-border);
+            transition: all 0.2s ease;
+        }
+
+        .files-empty svg {
+            color: var(--border);
+            margin-bottom: 12px;
+        }
+
+        .files-empty p {
+            font-size: 13px;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+
+        .files-empty span {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        /* Status info */
+        .file-card-status {
+            display: flex;
+            gap: 12px;
+            margin-top: 8px;
+            padding-top: 8px;
+            border-top: 1px solid var(--border);
+        }
+
+        .status-tag {
+            font-size: 10px;
+            color: var(--text-secondary);
+        }
+
+        .status-tag strong {
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        /* Loading */
+        .viewer-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(10px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .viewer-overlay.visible {
+            display: flex;
+        }
+
+        .spinner {
+            width: 32px;
+            height: 32px;
+            border: 3px solid var(--bg-tertiary);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Toast */
+        .toast-container {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 2000;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .toast {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 16px;
+            background: rgba(29, 29, 31, 0.9);
+            color: white;
+            border-radius: 10px;
+            font-size: 13px;
+            backdrop-filter: blur(20px);
+            animation: toastIn 0.2s ease;
+        }
+
+        .toast.toast-out {
+            animation: toastOut 0.2s ease forwards;
+        }
+
+        @keyframes toastIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes toastOut {
+            to { opacity: 0; transform: translateY(10px); }
+        }
+
+        .toast-success { background: rgba(52, 199, 89, 0.9); }
+        .toast-error { background: rgba(255, 59, 48, 0.9); }
+        .toast-warning { background: rgba(255, 149, 0, 0.9); }
+
+        /* Responsive - Mobile */
+        @media (max-width: 768px) {
+            #app {
+                padding: 8px;
+                gap: 8px;
+            }
+
+            .main-container {
+                flex-direction: column-reverse;
+            }
+
+            .files-panel {
+                width: 100%;
+                max-height: 40%;
+            }
+
+            .viewer-panel {
+                flex: 1;
+            }
+
+            .global-controls {
+                padding: 10px;
+            }
+        }
+
+        /* Full-screen drag overlay */
+        .drag-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 113, 227, 0.1);
+            backdrop-filter: blur(4px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            pointer-events: none;
+        }
+
+        .drag-overlay.active {
+            display: flex;
+        }
+
+        .drag-overlay-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 16px;
+            padding: 40px 60px;
+            background: var(--glass-bg);
+            border: 3px dashed var(--accent);
+            border-radius: var(--radius);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.02); opacity: 0.9; }
+        }
+
+        .drag-overlay-content svg {
+            width: 48px;
+            height: 48px;
+            color: var(--accent);
+        }
+
+        .drag-overlay-content p {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .drag-overlay-content span {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        /* Mobile: hide some controls */
+        @media (max-width: 480px) {
+            .file-cards {
+                gap: 6px;
+            }
+
+            .file-card {
+                padding: 10px;
+            }
+
+            .view-controls {
+                bottom: 8px;
+                right: 8px;
+                padding: 4px;
+            }
+
+            .view-btn {
+                width: 28px;
+                height: 28px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Full-screen drag overlay -->
+    <div class="drag-overlay" id="dragOverlay">
+        <div class="drag-overlay-content">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/>
+                <polyline points="14 2 14 8 20 8"/>
+            </svg>
+            <p>Drop STL files here</p>
+            <span>Release to upload</span>
+        </div>
+    </div>
+
+    <div id="app">
+        <!-- Main container -->
+        <div class="main-container">
+            <!-- Files panel -->
+            <div class="files-panel">
+                <!-- Global controls -->
+                <div class="global-controls" id="globalControls">
+                    <!-- Global simplify slider -->
+                    <div class="global-simplify">
+                        <div class="global-simplify-header">
+                            <span>Simplify All</span>
+                            <span class="value" id="globalQualityValue">100%</span>
+                        </div>
+                        <input type="range" class="global-slider" id="globalSlider" min="1" max="100" value="100">
+                    </div>
+                    <button class="btn btn-secondary btn-block" id="downloadAllBtn">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                            <polyline points="7 10 12 15 17 10"/>
+                            <line x1="12" y1="15" x2="12" y2="3"/>
+                        </svg>
+                        <span>Download All</span>
+                    </button>
+                </div>
+
+                <!-- File cards -->
+                <div class="file-cards" id="fileCards">
+                    <div class="files-empty" id="filesEmpty">
+                        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
+                            <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/>
+                            <polyline points="14 2 14 8 20 8"/>
+                        </svg>
+                        <p>No files loaded</p>
+                        <span>Upload STL files to get started</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Viewer panel -->
+            <div class="viewer-panel" id="viewerPanel">
+                <canvas id="viewerCanvas"></canvas>
+                <div class="viewer-overlay" id="viewerOverlay">
+                    <div class="spinner"></div>
+                </div>
+                <div class="viewer-empty" id="viewerEmpty">
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
+                        <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+                        <path d="M2 17l10 5 10-5"/>
+                        <path d="M2 12l10 5 10-5"/>
+                    </svg>
+                    <h3>Drop STL files here</h3>
+                    <p>Upload or drag STL files to view</p>
+                </div>
+                <!-- View controls -->
+                <div class="view-controls">
+                    <button class="view-btn" id="resetViewBtn" title="Reset View">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+                            <path d="M3 3v5h5"/>
+                        </svg>
+                    </button>
+                    <button class="view-btn active" id="gridBtn" title="Grid">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="3" width="18" height="18" rx="2"/>
+                            <line x1="3" y1="9" x2="21" y2="9"/>
+                            <line x1="3" y1="15" x2="21" y2="15"/>
+                            <line x1="9" y1="3" x2="9" y2="21"/>
+                            <line x1="15" y1="3" x2="15" y2="21"/>
+                        </svg>
+                    </button>
+                    <button class="view-btn" id="wireframeBtn" title="Wireframe">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+                            <path d="M2 17l10 5 10-5"/>
+                            <path d="M2 12l10 5 10-5"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- Hidden file input -->
+    <input type="file" id="fileInput" accept=".stl" multiple hidden>
+
+    <!-- Three.js and dependencies -->
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+
+    <script src="js/stl-parser.js"></script>
+    <script src="js/mesh-compressor.js"></script>
+    <script src="js/viewer.js"></script>
+    <script>
+        // Global error handler
+        window.onerror = function(msg, url, line, col, error) {
+            console.error('Error:', msg, 'at line', line);
+        };
+    </script>
+    <script src="js/app.js"></script>
+</body>
+</html>
