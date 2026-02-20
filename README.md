@@ -4,6 +4,10 @@
 [![License](https://img.shields.io/badge/license-Apache--2.0-yellow.svg)](LICENSE)
 [![Platform](https://img.shields.io/badge/platform-web-orange.svg)](https://github.com/fan-ziqi/stl_compressor_web)
 
+**Live Demo** (All processing happens in your browser - your models never leave your device):
+
+[![Try it now](https://img.shields.io/badge/🌐_Try_it_now-stl.robotsfan.com-brightgreen?style=for-the-badge)](http://stl.robotsfan.com/)
+
 **STL Compressor Web** is a pure frontend web application for viewing and compressing STL 3D files directly in the browser. Built on top of [Three.js](https://threejs.org/), it provides an intuitive interface for visualizing and simplifying 3D meshes without any installation required. All processing happens locally in your browser - your files never leave your device.
 
 ## Key Features
@@ -42,6 +46,25 @@ No build step or server required - just open the HTML file directly in your brow
 ## License
 
 This project is licensed under the [Apache License 2.0](LICENSE).
+
+## Development
+
+This project uses `package.json` to manage development dependencies:
+
+- **Playwright**: Used for end-to-end (E2E) testing
+- **No build required**: This is a pure static website - open `index.html` directly in your browser
+
+To install dependencies for development:
+
+```bash
+npm install
+```
+
+To run E2E tests (if configured):
+
+```bash
+npx playwright test
+```
 
 ## Author
 
