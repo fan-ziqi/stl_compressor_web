@@ -33,9 +33,10 @@ class STLToolApp {
         const themeText = document.getElementById('themeText');
         const themeIcon = document.getElementById('themeIcon');
 
-        // Load saved theme
-        const savedTheme = localStorage.getItem('theme') || 'light';
-        this.applyTheme(savedTheme);
+        // Load saved theme or default to light
+        const savedTheme = localStorage.getItem('theme');
+        const theme = savedTheme === 'dark' ? 'dark' : 'light';
+        this.applyTheme(theme);
 
         themeBtn.addEventListener('click', () => {
             const currentTheme = document.documentElement.getAttribute('data-theme');

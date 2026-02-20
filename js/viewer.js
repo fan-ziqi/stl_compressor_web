@@ -22,9 +22,6 @@ class STLViewer {
     init() {
         // Scene
         this.scene = new THREE.Scene();
-        this.updateTheme('light');
-
-        // Camera
 
         // Camera
         const aspect = this.canvas.clientWidth / this.canvas.clientHeight;
@@ -48,6 +45,9 @@ class STLViewer {
         // Grid
         this.grid = new THREE.GridHelper(200, 20, 0xcccccc, 0xdddddd);
         this.scene.add(this.grid);
+
+        // Theme (after grid is created)
+        this.updateTheme('light');
 
         // Axis helper
         this.axis = new THREE.AxesHelper(100);
@@ -108,12 +108,18 @@ class STLViewer {
     updateTheme(theme) {
         if (theme === 'dark') {
             this.scene.background = new THREE.Color(0x0a0a0f);
-            this.grid.material.color.setHex(0x333333);
-            this.grid.material.secondaryColor.setHex(0x222222);
+            // Recreate grid with dark theme colors
+            this.scene.remove(this.grid);
+            this.grid = new THREE.GridHelper(200, 20, 0x333333, 0x222222);
+            this.scene.add(this.grid);
+            this.grid.visible = this.gridVisible;
         } else {
             this.scene.background = new THREE.Color(0xe8e8ed);
-            this.grid.material.color.setHex(0xcccccc);
-            this.grid.material.secondaryColor.setHex(0xdddddd);
+            // Recreate grid with light theme colors
+            this.scene.remove(this.grid);
+            this.grid = new THREE.GridHelper(200, 20, 0xcccccc, 0xdddddd);
+            this.scene.add(this.grid);
+            this.grid.visible = this.gridVisible;
         }
     }
 
